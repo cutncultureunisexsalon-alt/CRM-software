@@ -25,6 +25,10 @@ export default {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
+  frontendUrls: (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173')
+    .split(',')
+    .map((url) => url.trim())
+    .filter(Boolean),
   salonName: process.env.SALON_NAME || 'Your Salon',
   whatsappSessionPath: process.env.WHATSAPP_SESSION_PATH || './.wwebjs_auth',
   cronTimezone: process.env.CRON_TIMEZONE || 'Asia/Kolkata',

@@ -147,6 +147,7 @@ Run the migration SQL in your production Supabase project.
 3. Use the `render.yaml` blueprint or configure manually:
    - **Build Command:** `cd backend && npm install`
    - **Start Command:** `cd backend && npm start`
+   - **Health Check Path:** `/api/health` (optional but recommended)
 4. Set environment variables from `backend/.env.example`
 5. Add a **Persistent Disk** mounted at `backend/.wwebjs_auth` for WhatsApp session persistence
 6. Run seed once via Render shell: `cd backend && npm run seed`
@@ -165,7 +166,8 @@ Run the migration SQL in your production Supabase project.
 
 - [ ] Run database migration on Supabase
 - [ ] Seed admin user on Render
-- [ ] Set `FRONTEND_URL` on Render to your Vercel URL
+- [ ] Set `FRONTEND_URL` on Render to your main Vercel URL
+- [ ] Set `FRONTEND_URLS` on Render if you want to allow multiple frontend domains
 - [ ] Set `VITE_API_URL` on Vercel to your Render API URL
 - [ ] Connect WhatsApp via the admin panel
 - [ ] Change default admin password
