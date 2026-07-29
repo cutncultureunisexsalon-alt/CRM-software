@@ -21,7 +21,7 @@ const server = app.listen(PORT, async () => {
     console.error('[Cron] Failed to start:', err.message);
   }
 
-  if (process.env.AUTO_INIT_WHATSAPP === 'true') {
+  if (config.autoInitWhatsApp) {
     try {
       await whatsappService.initialize();
     } catch (err) {

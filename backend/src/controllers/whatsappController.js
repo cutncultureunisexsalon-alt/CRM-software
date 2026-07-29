@@ -6,6 +6,7 @@ import { MessageLogModel } from '../models/MessageLog.js';
 import { SettingsModel } from '../models/WhatsApp.js';
 import { interpolateTemplate } from '../services/messageService.js';
 import config from '../config/index.js';
+import { restartCronJobs } from '../cron/scheduler.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 
 export const getWhatsAppStatus = asyncHandler(async (_req, res) => {
@@ -126,6 +127,8 @@ export const updateSettings = asyncHandler(async (req, res) => {
     await SettingsModel.set(key, value);
   }
 
+  await restartCronJobs();
+
   res.json({ success: true, message: 'Settings updated' });
 });
 
@@ -155,6 +158,8 @@ export const triggerCronJob = asyncHandler(async (req, res) => {
     anniversary: CronJobs.sendAnniversaryMessages,
     monthly_offer: CronJobs.sendMonthlyOffers,
     follow_up: CronJobs.sendFollowUpMessages,
+    follow_up_female: CronJobs.sendFemaleFollowUpMessages,
+    follow_up_male: CronJobs.sendMaleFollowUpMessages,
   };
 
   if (!jobs[job]) {

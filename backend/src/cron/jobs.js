@@ -10,12 +10,27 @@ const getSalonName = async () => {
   return SettingsModel.getString('salon_name', config.salonName);
 };
 
-const shouldSkipCustomer = async (customer, type) => {
+const FOLLOW_UP_RULES = {
+  female: {
+    type: 'follow_up_female',
+    minDaysSinceVisit: 15,
+    templateTypes: ['follow_up_female', 'follow_up'],
+    label: 'female follow-up',
+  },
+  male: {
+    type: 'follow_up_male',
+    minDaysSinceVisit: 75,
+    templateTypes: ['follow_up_male', 'follow_up'],
+    label: 'male follow-up',
+  },
+};
+
+const shouldSkipCustomer = async (customer, type, skipWindowDays) => {
   if (type === 'birthday' || type === 'anniversary') {
     return MessageLogModel.wasSentToday(customer.id, type);
   }
-  if (type === 'follow_up') {
-    return MessageLogModel.wasSentWithinDays(customer.id, type, 30);
+  if (skipWindowDays) {
+    return MessageLogModel.wasSentWithinDays(customer.id, type, skipWindowDays);
   }
   if (type === 'monthly_offer') {
     return MessageLogModel.wasSentWithinDays(customer.id, type, 28);
@@ -23,8 +38,8 @@ const shouldSkipCustomer = async (customer, type) => {
   return false;
 };
 
-const sendBulkMessages = async (customers, type) => {
-  const template = await TemplateModel.findActiveByType(type);
+const sendBulkMessages = async (customers, type, options = {}) => {
+  const template = await TemplateModel.findFirstActiveByTypes(options.templateTypes || [type]);
   if (!template) {
     console.log(`[Cron] No active template for type: ${type}`);
     return { sent: 0, failed: 0, skipped: 0 };
@@ -36,7 +51,7 @@ const sendBulkMessages = async (customers, type) => {
   let skipped = 0;
 
   for (const customer of customers) {
-    if (await shouldSkipCustomer(customer, type)) {
+    if (await shouldSkipCustomer(customer, type, options.skipWindowDays)) {
       skipped++;
       continue;
     }
@@ -109,9 +124,46 @@ export const CronJobs = {
   },
 
   async sendFollowUpMessages() {
-    console.log('[Cron] Running follow-up messages...');
-    const customers = await CustomerModel.findFollowUpDue();
-    console.log(`[Cron] Found ${customers.length} follow-up customers`);
-    return sendBulkMessages(customers, 'follow_up');
+    console.log('[Cron] Running gender-based follow-up messages...');
+    const femaleResult = await this.sendFemaleFollowUpMessages();
+    const maleResult = await this.sendMaleFollowUpMessages();
+
+    return {
+      sent: femaleResult.sent + maleResult.sent,
+      failed: femaleResult.failed + maleResult.failed,
+      skipped: femaleResult.skipped + maleResult.skipped,
+      breakdown: {
+        follow_up_female: femaleResult,
+        follow_up_male: maleResult,
+      },
+    };
+  },
+
+  async sendFemaleFollowUpMessages() {
+    const rule = FOLLOW_UP_RULES.female;
+    console.log('[Cron] Running female follow-up messages...');
+    const customers = await CustomerModel.findFollowUpDue({
+      gender: 'female',
+      minDaysSinceVisit: rule.minDaysSinceVisit,
+    });
+    console.log(`[Cron] Found ${customers.length} ${rule.label} customers`);
+    return sendBulkMessages(customers, rule.type, {
+      templateTypes: rule.templateTypes,
+      skipWindowDays: rule.minDaysSinceVisit,
+    });
+  },
+
+  async sendMaleFollowUpMessages() {
+    const rule = FOLLOW_UP_RULES.male;
+    console.log('[Cron] Running male follow-up messages...');
+    const customers = await CustomerModel.findFollowUpDue({
+      gender: 'male',
+      minDaysSinceVisit: rule.minDaysSinceVisit,
+    });
+    console.log(`[Cron] Found ${customers.length} ${rule.label} customers`);
+    return sendBulkMessages(customers, rule.type, {
+      templateTypes: rule.templateTypes,
+      skipWindowDays: rule.minDaysSinceVisit,
+    });
   },
 };

@@ -7,6 +7,12 @@ const normalizePhone = (phone) => {
   return String(phone).replace(/\D/g, '');
 };
 
+const normalizeGender = (gender) => {
+  if (!gender) return null;
+  const value = String(gender).trim().toLowerCase();
+  return ['male', 'female', 'other'].includes(value) ? value : null;
+};
+
 const parseDate = (value) => {
   if (!value) return null;
   if (value instanceof Date) return value.toISOString().split('T')[0];
@@ -67,7 +73,7 @@ export const ExcelService = {
         birthday: parseDate(row.birthday || row.Birthday),
         anniversary: parseDate(row.anniversary || row.Anniversary),
         last_visit: parseDate(row.last_visit || row['Last Visit'] || row.lastVisit),
-        gender: row.gender || row.Gender || null,
+        gender: normalizeGender(row.gender || row.Gender),
         notes: row.notes || row.Notes || null,
         is_active: true,
       });

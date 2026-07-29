@@ -10,19 +10,25 @@ const TEMPLATE_TYPES = [
   { value: 'birthday', label: 'Birthday' },
   { value: 'anniversary', label: 'Anniversary' },
   { value: 'monthly_offer', label: 'Monthly Offer' },
-  { value: 'follow_up', label: '30-Day Follow-up' },
+  { value: 'follow_up_female', label: 'Female Follow-up (15 Days)' },
+  { value: 'follow_up_male', label: 'Male Follow-up (75 Days)' },
+  { value: 'follow_up', label: 'General Follow-up Fallback' },
 ];
 
 const TYPE_COLORS = {
   birthday: 'badge-warning',
   anniversary: 'badge-info',
   monthly_offer: 'badge-success',
-  follow_up: 'badge-danger',
+  follow_up_female: 'badge-danger',
+  follow_up_male: 'badge-danger',
+  follow_up: 'badge-warning',
 };
 
 const emptyForm = { type: 'birthday', name: '', content: '', is_active: true };
 
 const PLACEHOLDERS = '{{name}}, {{phone}}, {{email}}, {{salon_name}}, {{birthday}}, {{anniversary}}, {{last_visit}}';
+
+const formatTypeLabel = (type) => type.split('_').join(' ');
 
 export default function Templates() {
   const [templates, setTemplates] = useState([]);
@@ -136,7 +142,7 @@ export default function Templates() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <span className={TYPE_COLORS[t.type] || 'badge-info'}>
-                    {t.type.replace('_', ' ')}
+                    {formatTypeLabel(t.type)}
                   </span>
                   <h3 className="font-semibold text-dark-50 mt-2">{t.name}</h3>
                 </div>

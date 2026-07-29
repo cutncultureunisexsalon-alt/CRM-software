@@ -21,7 +21,7 @@ export const customerValidation = [
 
 export const templateValidation = [
   body('type')
-    .isIn(['birthday', 'anniversary', 'monthly_offer', 'follow_up'])
+    .isIn(['birthday', 'anniversary', 'monthly_offer', 'follow_up', 'follow_up_female', 'follow_up_male'])
     .withMessage('Invalid template type'),
   body('name').trim().notEmpty().withMessage('Template name is required'),
   body('content').trim().notEmpty().withMessage('Template content is required'),

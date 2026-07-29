@@ -24,7 +24,9 @@ services:
       - key: CRON_TIMEZONE
         value: Asia/Kolkata
       - key: AUTO_INIT_WHATSAPP
-        value: "false"
+        value: "true"
+      - key: WHATSAPP_RECONNECT_DELAY_MS
+        value: "30000"
       - key: WHATSAPP_SESSION_PATH
         value: ./.wwebjs_auth
       - key: ADMIN_EMAIL

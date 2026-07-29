@@ -12,6 +12,10 @@ for (const key of required) {
 export default {
   port: parseInt(process.env.PORT, 10) || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  autoInitWhatsApp: process.env.AUTO_INIT_WHATSAPP
+    ? process.env.AUTO_INIT_WHATSAPP === 'true'
+    : (process.env.NODE_ENV || 'development') === 'production',
+  whatsappReconnectDelayMs: parseInt(process.env.WHATSAPP_RECONNECT_DELAY_MS, 10) || 30000,
   supabase: {
     url: process.env.SUPABASE_URL,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,

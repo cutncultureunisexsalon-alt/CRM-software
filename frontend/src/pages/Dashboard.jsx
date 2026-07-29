@@ -131,7 +131,7 @@ export default function Dashboard() {
             )}
             <div className="pt-2">
               <p className="text-xs text-dark-500">
-                Automated messages run daily for birthdays, anniversaries, follow-ups, and monthly offers.
+                Automated messages run for birthdays, anniversaries, monthly offers, female 15-day follow-ups, and male 75-day follow-ups.
               </p>
             </div>
           </div>

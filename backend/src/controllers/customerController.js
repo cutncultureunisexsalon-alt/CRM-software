@@ -2,6 +2,12 @@ import { CustomerModel } from '../models/Customer.js';
 import { ExcelService } from '../services/excelService.js';
 import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 
+const normalizeGender = (gender) => {
+  if (gender === undefined) return undefined;
+  if (gender === null || gender === '') return null;
+  return String(gender).trim().toLowerCase();
+};
+
 export const getCustomers = asyncHandler(async (req, res) => {
   const { search, gender, is_active, page, limit, sort_by, sort_order } = req.query;
 
@@ -29,7 +35,10 @@ export const createCustomer = asyncHandler(async (req, res) => {
     throw new AppError('Customer with this phone number already exists', 409);
   }
 
-  const customer = await CustomerModel.create(req.body);
+  const customer = await CustomerModel.create({
+    ...req.body,
+    gender: normalizeGender(req.body.gender),
+  });
   res.status(201).json({ success: true, message: 'Customer created', data: customer });
 });
 
@@ -41,7 +50,10 @@ export const updateCustomer = asyncHandler(async (req, res) => {
     }
   }
 
-  const customer = await CustomerModel.update(req.params.id, req.body);
+  const customer = await CustomerModel.update(req.params.id, {
+    ...req.body,
+    gender: normalizeGender(req.body.gender),
+  });
   res.json({ success: true, message: 'Customer updated', data: customer });
 });
 

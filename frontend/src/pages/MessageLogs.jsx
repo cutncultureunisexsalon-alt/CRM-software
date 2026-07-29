@@ -14,7 +14,9 @@ const TYPE_LABELS = {
   birthday: 'Birthday',
   anniversary: 'Anniversary',
   monthly_offer: 'Monthly Offer',
-  follow_up: 'Follow-up',
+  follow_up_female: 'Female Follow-up',
+  follow_up_male: 'Male Follow-up',
+  follow_up: 'General Follow-up',
   manual: 'Manual',
 };
 
@@ -95,7 +97,9 @@ export default function MessageLogs() {
             <option value="birthday">Birthday</option>
             <option value="anniversary">Anniversary</option>
             <option value="monthly_offer">Monthly Offer</option>
-            <option value="follow_up">Follow-up</option>
+            <option value="follow_up_female">Female Follow-up</option>
+            <option value="follow_up_male">Male Follow-up</option>
+            <option value="follow_up">General Follow-up</option>
             <option value="manual">Manual</option>
           </select>
         </div>

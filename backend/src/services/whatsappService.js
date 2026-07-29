@@ -14,6 +14,8 @@ class WhatsAppService {
     this.status = 'disconnected';
     this.phoneNumber = null;
     this.initializing = false;
+    this.shouldReconnect = false;
+    this.reconnectTimer = null;
   }
 
   getStatus() {
@@ -25,9 +27,36 @@ class WhatsAppService {
     };
   }
 
+  clearReconnectTimer() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  scheduleReconnect(reason = 'unknown') {
+    if (!this.shouldReconnect || this.reconnectTimer) return;
+
+    const delay = config.whatsappReconnectDelayMs;
+    console.log(`[WhatsApp] Reconnect scheduled in ${delay}ms (${reason})`);
+
+    this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+
+      try {
+        await this.initialize();
+      } catch (err) {
+        console.error('[WhatsApp] Reconnect attempt failed:', err.message);
+        this.scheduleReconnect('retry_failed');
+      }
+    }, delay);
+  }
+
   async initialize() {
     if (this.client && this.status === 'connected') return;
     if (this.initializing) return;
+    this.shouldReconnect = true;
+    this.clearReconnectTimer();
 
     if (this.client) {
       try {
@@ -87,6 +116,7 @@ class WhatsAppService {
       this.status = 'connected';
       this.qrCode = null;
       this.initializing = false;
+      this.clearReconnectTimer();
 
       const info = this.client.info;
       this.phoneNumber = info?.wid?.user || null;
@@ -114,12 +144,32 @@ class WhatsAppService {
         phone_number: null,
         session_data: { status: 'disconnected', reason },
       });
+
+      this.scheduleReconnect(reason);
     });
 
     this.client.on('auth_failure', async (msg) => {
       console.error('[WhatsApp] Auth failure:', msg);
       this.status = 'auth_failure';
+      this.qrCode = null;
+      this.phoneNumber = null;
       this.initializing = false;
+      if (this.client) {
+        try {
+          await this.client.destroy();
+        } catch {
+          /* ignore */
+        }
+      }
+      this.client = null;
+
+      await WhatsAppModel.updateSession({
+        is_connected: false,
+        phone_number: null,
+        session_data: { status: 'auth_failure', reason: msg },
+      });
+
+      this.scheduleReconnect('auth_failure');
     });
 
     try {
@@ -129,6 +179,12 @@ class WhatsAppService {
       this.status = 'error';
       this.initializing = false;
       this.client = null;
+      await WhatsAppModel.updateSession({
+        is_connected: false,
+        phone_number: null,
+        session_data: { status: 'error', reason: err.message },
+      });
+      this.scheduleReconnect('initialize_error');
     }
   }
 
@@ -166,6 +222,9 @@ class WhatsAppService {
   }
 
   async logout() {
+    this.shouldReconnect = false;
+    this.clearReconnectTimer();
+
     if (this.client) {
       try {
         await this.client.logout();
@@ -190,6 +249,7 @@ class WhatsAppService {
 
   async restart() {
     await this.logout();
+    this.shouldReconnect = true;
     await this.initialize();
   }
 }

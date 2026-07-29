@@ -34,6 +34,22 @@ export const TemplateModel = {
     return data;
   },
 
+  async findFirstActiveByTypes(types = []) {
+    if (!types.length) return null;
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .in('type', types)
+      .eq('is_active', true);
+
+    if (error) throw new AppError('Failed to fetch template', 500);
+
+    return types
+      .map((type) => (data || []).find((template) => template.type === type))
+      .find(Boolean) || null;
+  },
+
   async create(template) {
     const { data, error } = await supabase.from(TABLE).insert(template).select().single();
     if (error) throw new AppError('Failed to create template', 500);

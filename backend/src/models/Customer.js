@@ -11,6 +11,27 @@ const sameMonthDay = (dateValue, month, day) => {
   return parts[1] === month && parts[2] === day;
 };
 
+const normalizeGender = (gender) => String(gender || '').trim().toLowerCase();
+
+const daysSinceDate = (dateValue) => {
+  if (!dateValue) return null;
+
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+const isFollowUpDue = (customer, gender, minDaysSinceVisit) => {
+  const normalizedGender = normalizeGender(customer.gender);
+  const elapsedDays = daysSinceDate(customer.last_visit);
+
+  return normalizedGender === gender && elapsedDays !== null && elapsedDays >= minDaysSinceVisit;
+};
+
 export const CustomerModel = {
   async findAll({ search, gender, isActive, page = 1, limit = 20, sortBy = 'created_at', sortOrder = 'desc' }) {
     let query = supabase.from(TABLE).select('*', { count: 'exact' });
@@ -87,12 +108,8 @@ export const CustomerModel = {
 
     const { data: activeCustomers, error: activeCustomersError } = await supabase
       .from(TABLE)
-      .select('birthday, last_visit')
+      .select('birthday, last_visit, gender')
       .eq('is_active', true);
-
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const cutoff = thirtyDaysAgo.toISOString().split('T')[0];
 
     if (totalError || activeError || activeCustomersError) {
       throw new AppError('Failed to fetch stats', 500);
@@ -103,7 +120,7 @@ export const CustomerModel = {
     ).length;
 
     const followUpDue = (activeCustomers || []).filter((customer) =>
-      customer.last_visit && customer.last_visit <= cutoff
+      isFollowUpDue(customer, 'female', 15) || isFollowUpDue(customer, 'male', 75)
     ).length;
 
     return {
@@ -142,20 +159,15 @@ export const CustomerModel = {
     return (data || []).filter((customer) => sameMonthDay(customer.anniversary, month, day));
   },
 
-  async findFollowUpDue() {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const cutoff = thirtyDaysAgo.toISOString().split('T')[0];
-
+  async findFollowUpDue({ gender, minDaysSinceVisit }) {
     const { data, error } = await supabase
       .from(TABLE)
       .select('*')
       .eq('is_active', true)
-      .lte('last_visit', cutoff)
       .not('last_visit', 'is', null);
 
     if (error) throw new AppError('Failed to fetch follow-up customers', 500);
-    return data || [];
+    return (data || []).filter((customer) => isFollowUpDue(customer, gender, minDaysSinceVisit));
   },
 
   async findAllActive() {

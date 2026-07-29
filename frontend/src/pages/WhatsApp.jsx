@@ -10,7 +10,9 @@ const CRON_JOBS = [
   { key: 'birthday', label: 'Birthday Messages', desc: 'Send to customers with birthday today' },
   { key: 'anniversary', label: 'Anniversary Messages', desc: 'Send to customers with anniversary today' },
   { key: 'monthly_offer', label: 'Monthly Offers', desc: 'Send monthly offers to all active customers' },
-  { key: 'follow_up', label: '30-Day Follow-ups', desc: 'Send to customers not visited in 30+ days' },
+  { key: 'follow_up', label: 'All Follow-ups', desc: 'Run both female 15-day and male 75-day follow-up automation' },
+  { key: 'follow_up_female', label: 'Female Follow-ups', desc: 'Send to female customers 15+ days after last visit' },
+  { key: 'follow_up_male', label: 'Male Follow-ups', desc: 'Send to male customers 75+ days after last visit' },
 ];
 
 export default function WhatsApp() {
@@ -100,7 +102,11 @@ export default function WhatsApp() {
     setActionLoading(job);
     try {
       const { data } = await whatsappAPI.triggerCron(job);
-      toast.success(`${job}: sent ${data.data.sent}, failed ${data.data.failed}${data.data.skipped ? `, skipped ${data.data.skipped}` : ''}`);
+      const summary = `${job}: sent ${data.data.sent}, failed ${data.data.failed}${data.data.skipped ? `, skipped ${data.data.skipped}` : ''}`;
+      const breakdown = data.data.breakdown
+        ? ` | female ${data.data.breakdown.follow_up_female.sent}/${data.data.breakdown.follow_up_female.failed}/${data.data.breakdown.follow_up_female.skipped} | male ${data.data.breakdown.follow_up_male.sent}/${data.data.breakdown.follow_up_male.failed}/${data.data.breakdown.follow_up_male.skipped}`
+        : '';
+      toast.success(`${summary}${breakdown}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Job failed');
     } finally {
@@ -277,6 +283,9 @@ export default function WhatsApp() {
               ))}
             </div>
           )}
+          <div className="sm:col-span-2 text-xs text-dark-500">
+            Female follow-ups go out every 15 days after the last visit. Male follow-ups go out every 75 days after the last visit.
+          </div>
           <div className="sm:col-span-2 flex justify-end">
             <button type="submit" className="btn-primary" disabled={savingSettings}>
               {savingSettings ? 'Saving...' : 'Save Settings'}

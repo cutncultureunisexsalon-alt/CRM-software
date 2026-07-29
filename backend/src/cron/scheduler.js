@@ -5,6 +5,14 @@ import { CronJobs } from './jobs.js';
 
 let scheduledTasks = [];
 
+const wrapScheduledJob = (label, job) => async () => {
+  try {
+    await job();
+  } catch (err) {
+    console.error(`[Cron] ${label} failed:`, err.message);
+  }
+};
+
 const getCronSetting = async (key, defaultValue) => {
   try {
     const value = await SettingsModel.getString(key, '');
@@ -39,10 +47,10 @@ export const startCronJobs = async () => {
   const followUpCron = await getCronSetting('follow_up_cron', '0 10 * * *');
 
   scheduledTasks = [
-    cron.schedule(birthdayCron, () => CronJobs.sendBirthdayMessages(), { timezone }),
-    cron.schedule(anniversaryCron, () => CronJobs.sendAnniversaryMessages(), { timezone }),
-    cron.schedule(monthlyOfferCron, () => CronJobs.sendMonthlyOffers(), { timezone }),
-    cron.schedule(followUpCron, () => CronJobs.sendFollowUpMessages(), { timezone }),
+    cron.schedule(birthdayCron, wrapScheduledJob('birthday', CronJobs.sendBirthdayMessages), { timezone }),
+    cron.schedule(anniversaryCron, wrapScheduledJob('anniversary', CronJobs.sendAnniversaryMessages), { timezone }),
+    cron.schedule(monthlyOfferCron, wrapScheduledJob('monthly_offer', CronJobs.sendMonthlyOffers), { timezone }),
+    cron.schedule(followUpCron, wrapScheduledJob('follow_up', CronJobs.sendFollowUpMessages), { timezone }),
   ];
 
   console.log('[Cron] Scheduled jobs started');

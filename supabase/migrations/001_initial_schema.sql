@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS customers (
 
 CREATE TABLE IF NOT EXISTS message_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type VARCHAR(50) NOT NULL CHECK (type IN ('birthday', 'anniversary', 'monthly_offer', 'follow_up')),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('birthday', 'anniversary', 'monthly_offer', 'follow_up', 'follow_up_female', 'follow_up_male')),
   name VARCHAR(255) NOT NULL,
   content TEXT NOT NULL,
   is_active BOOLEAN DEFAULT TRUE,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS message_logs (
   template_id UUID REFERENCES message_templates(id) ON DELETE SET NULL,
   phone VARCHAR(20) NOT NULL,
   message TEXT NOT NULL,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('birthday', 'anniversary', 'monthly_offer', 'follow_up', 'manual')),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('birthday', 'anniversary', 'monthly_offer', 'follow_up', 'follow_up_female', 'follow_up_male', 'manual')),
   status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
   error_message TEXT,
   sent_at TIMESTAMPTZ DEFAULT NOW()
@@ -108,7 +108,9 @@ SELECT * FROM (VALUES
   ('birthday'::VARCHAR, 'Birthday Wishes'::VARCHAR, 'Happy Birthday {{name}}! Wishing you a wonderful day from {{salon_name}}. Visit us for a special birthday treat!'::TEXT, TRUE),
   ('anniversary', 'Anniversary Wishes', 'Happy Anniversary {{name}}! Celebrate your special day with us at {{salon_name}}. Book now for exclusive offers!', TRUE),
   ('monthly_offer', 'Monthly Offer', 'Hi {{name}}! {{salon_name}} has exciting offers this month. Visit us and pamper yourself!', TRUE),
-  ('follow_up', '30-Day Follow Up', 'Hi {{name}}! It has been a while since your last visit to {{salon_name}}. We miss you! Book your appointment today.', TRUE)
+  ('follow_up_female', 'Female Follow Up (15 Days)', 'Hi {{name}}! We hope you are feeling great after your visit to {{salon_name}}. It has been 15 days since we saw you, and we would love to welcome you back soon.', TRUE),
+  ('follow_up_male', 'Male Follow Up (75 Days)', 'Hi {{name}}! It has been some time since your last visit to {{salon_name}}. We would love to see you again. Book your next appointment whenever you are ready.', TRUE),
+  ('follow_up', 'General Follow Up', 'Hi {{name}}! It has been a while since your last visit to {{salon_name}}. We miss you! Book your appointment today.', TRUE)
 ) AS v(type, name, content, is_active)
 WHERE NOT EXISTS (SELECT 1 FROM message_templates LIMIT 1);
 
