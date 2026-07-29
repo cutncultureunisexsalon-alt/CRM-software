@@ -1,0 +1,166 @@
+import whatsappService from '../services/whatsappService.js';
+import { WhatsAppModel } from '../models/WhatsApp.js';
+import { CustomerModel } from '../models/Customer.js';
+import { TemplateModel } from '../models/Template.js';
+import { MessageLogModel } from '../models/MessageLog.js';
+import { SettingsModel } from '../models/WhatsApp.js';
+import { interpolateTemplate } from '../services/messageService.js';
+import config from '../config/index.js';
+import { asyncHandler, AppError } from '../middleware/errorHandler.js';
+
+export const getWhatsAppStatus = asyncHandler(async (_req, res) => {
+  const status = whatsappService.getStatus();
+  const session = await WhatsAppModel.getSession();
+
+  res.json({
+    success: true,
+    data: {
+      ...status,
+      dbSession: session,
+    },
+  });
+});
+
+export const initializeWhatsApp = asyncHandler(async (_req, res) => {
+  await whatsappService.initialize();
+
+  res.json({
+    success: true,
+    message: 'WhatsApp initialization started. Scan QR code when ready.',
+    data: whatsappService.getStatus(),
+  });
+});
+
+export const logoutWhatsApp = asyncHandler(async (_req, res) => {
+  await whatsappService.logout();
+
+  res.json({
+    success: true,
+    message: 'WhatsApp logged out successfully',
+    data: whatsappService.getStatus(),
+  });
+});
+
+export const restartWhatsApp = asyncHandler(async (_req, res) => {
+  await whatsappService.restart();
+
+  res.json({
+    success: true,
+    message: 'WhatsApp restart initiated',
+    data: whatsappService.getStatus(),
+  });
+});
+
+export const sendTestMessage = asyncHandler(async (req, res) => {
+  const { phone, message } = req.body;
+
+  if (!whatsappService.getStatus().isConnected) {
+    throw new AppError('WhatsApp is not connected', 400);
+  }
+
+  await whatsappService.sendMessage(phone, message);
+
+  await MessageLogModel.create({
+    phone,
+    message,
+    type: 'manual',
+    status: 'sent',
+  });
+
+  res.json({ success: true, message: 'Message sent successfully' });
+});
+
+export const sendManualMessage = asyncHandler(async (req, res) => {
+  const { customer_id, template_id } = req.body;
+
+  if (!whatsappService.getStatus().isConnected) {
+    throw new AppError('WhatsApp is not connected', 400);
+  }
+
+  const customer = await CustomerModel.findById(customer_id);
+  const template = await TemplateModel.findById(template_id);
+  const salonSetting = await SettingsModel.get('salon_name');
+  const salonName = salonSetting || config.salonName;
+
+  const message = interpolateTemplate(template.content, customer, salonName);
+
+  try {
+    await whatsappService.sendMessage(customer.phone, message);
+    const log = await MessageLogModel.create({
+      customer_id: customer.id,
+      template_id: template.id,
+      phone: customer.phone,
+      message,
+      type: template.type,
+      status: 'sent',
+    });
+
+    res.json({ success: true, message: 'Message sent', data: log });
+  } catch (err) {
+    const log = await MessageLogModel.create({
+      customer_id: customer.id,
+      template_id: template.id,
+      phone: customer.phone,
+      message,
+      type: template.type,
+      status: 'failed',
+      error_message: err.message,
+    });
+
+    throw new AppError(`Failed to send message: ${err.message}`, 500);
+  }
+});
+
+export const getSettings = asyncHandler(async (_req, res) => {
+  const settings = await SettingsModel.getAll();
+  const formatted = {};
+  settings.forEach((s) => { formatted[s.key] = s.value; });
+
+  res.json({ success: true, data: formatted });
+});
+
+export const updateSettings = asyncHandler(async (req, res) => {
+  const updates = req.body;
+
+  for (const [key, value] of Object.entries(updates)) {
+    await SettingsModel.set(key, value);
+  }
+
+  res.json({ success: true, message: 'Settings updated' });
+});
+
+export const getDashboardStats = asyncHandler(async (_req, res) => {
+  const [customerStats, messageStats, whatsappStatus] = await Promise.all([
+    CustomerModel.getStats(),
+    MessageLogModel.getStats(),
+    Promise.resolve(whatsappService.getStatus()),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      customers: customerStats,
+      messages: messageStats,
+      whatsapp: whatsappStatus,
+    },
+  });
+});
+
+export const triggerCronJob = asyncHandler(async (req, res) => {
+  const { job } = req.params;
+  const { CronJobs } = await import('../cron/jobs.js');
+
+  const jobs = {
+    birthday: CronJobs.sendBirthdayMessages,
+    anniversary: CronJobs.sendAnniversaryMessages,
+    monthly_offer: CronJobs.sendMonthlyOffers,
+    follow_up: CronJobs.sendFollowUpMessages,
+  };
+
+  if (!jobs[job]) {
+    throw new AppError('Invalid cron job type', 400);
+  }
+
+  const result = await jobs[job]();
+  res.json({ success: true, message: `${job} job executed`, data: result });
+});

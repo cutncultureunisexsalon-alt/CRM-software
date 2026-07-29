@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: salon-crm-api
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false
+      - key: SALON_NAME
+        value: Your Salon
+      - key: CRON_TIMEZONE
+        value: Asia/Kolkata
+      - key: AUTO_INIT_WHATSAPP
+        value: "false"
+      - key: WHATSAPP_SESSION_PATH
+        value: ./.wwebjs_auth
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: Salon Admin
+    disk:
+      name: whatsapp-session
+      mountPath: /opt/render/project/src/backend/.wwebjs_auth
+      sizeGB: 1
