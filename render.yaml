@@ -4,7 +4,7 @@ services:
     runtime: node
     region: singapore
     plan: starter
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install && PUPPETEER_CACHE_DIR=/opt/render/project/src/backend/.cache/puppeteer npm run install:chrome
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
@@ -31,6 +31,8 @@ services:
         value: "30000"
       - key: WHATSAPP_SESSION_PATH
         value: ./.wwebjs_auth
+      - key: PUPPETEER_CACHE_DIR
+        value: /opt/render/project/src/backend/.cache/puppeteer
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
