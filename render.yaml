@@ -4,7 +4,7 @@ services:
     runtime: node
     region: singapore
     plan: starter
-    buildCommand: cd backend && npm install && PUPPETEER_CACHE_DIR=/opt/render/project/src/backend/.cache/puppeteer npm run install:chrome
+    buildCommand: cd backend && PUPPETEER_CACHE_DIR=/opt/render/project/src/backend/.cache/puppeteer npm install && PUPPETEER_CACHE_DIR=/opt/render/project/src/backend/.cache/puppeteer npm run install:chrome
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV

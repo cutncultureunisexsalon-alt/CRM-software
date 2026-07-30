@@ -1,4 +1,5 @@
 import pkg from 'whatsapp-web.js';
+import puppeteer from 'puppeteer';
 const { Client, LocalAuth, MessageMedia } = pkg;
 import qrcode from 'qrcode';
 import path from 'path';
@@ -75,27 +76,39 @@ class WhatsAppService {
       fs.mkdirSync(sessionPath, { recursive: true });
     }
 
+    const puppeteerOptions = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu',
+        '--single-process',
+      ],
+    };
+
+    let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    if (!executablePath) {
+      try {
+        executablePath = puppeteer.executablePath();
+      } catch {
+        executablePath = undefined;
+      }
+    }
+
+    if (executablePath) {
+      puppeteerOptions.executablePath = executablePath;
+    }
+
     this.client = new Client({
       authStrategy: new LocalAuth({
         dataPath: sessionPath,
         clientId: 'salon-crm',
       }),
-      puppeteer: {
-        headless: true,
-        ...(process.env.PUPPETEER_EXECUTABLE_PATH && {
-          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-        }),
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--single-process',
-        ],
-      },
+      puppeteer: puppeteerOptions,
     });
 
     this.client.on('qr', async (qr) => {
