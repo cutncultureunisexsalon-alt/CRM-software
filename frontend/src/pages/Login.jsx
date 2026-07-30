@@ -5,6 +5,25 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+function getLoginErrorMessage(err) {
+  const apiMessage = err.response?.data?.message;
+  if (apiMessage) return apiMessage;
+
+  const contentType = err.response?.headers?.['content-type'] || '';
+  const isHtmlResponse = typeof contentType === 'string' && contentType.includes('text/html');
+  const baseURL = err.config?.baseURL;
+
+  if (!err.response) {
+    return 'Cannot reach the API server. Check VITE_API_URL on Vercel and FRONTEND_URL or FRONTEND_URLS on Render.';
+  }
+
+  if (isHtmlResponse || baseURL === '/api') {
+    return 'Frontend API is not configured correctly. Set VITE_API_URL on Vercel to your Render URL ending with /api and redeploy.';
+  }
+
+  return 'Login failed';
+}
+
 export default function Login() {
   const { login, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +54,7 @@ export default function Login() {
       toast.success('Welcome back!');
       navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(getLoginErrorMessage(err));
     } finally {
       setLoading(false);
     }

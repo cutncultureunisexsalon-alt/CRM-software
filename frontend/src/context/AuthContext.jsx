@@ -35,10 +35,46 @@ export function AuthProvider({ children }) {
   }, [verifyAuth]);
 
   const login = async (email, password) => {
+    // #region debug-point C:frontend-login-attempt
+    fetch('http://127.0.0.1:7777/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'login-failed',
+        runId: 'pre-fix',
+        hypothesisId: 'C',
+        location: 'frontend/src/context/AuthContext.jsx:login',
+        msg: '[DEBUG] Login attempt started',
+        data: {
+          email: email?.trim()?.toLowerCase(),
+          apiUrl: import.meta.env.VITE_API_URL || '/api',
+        },
+        ts: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     const { data } = await authAPI.login({ email, password });
     localStorage.setItem('token', data.data.token);
     localStorage.setItem('admin', JSON.stringify(data.data.admin));
     setAdmin(data.data.admin);
+    // #region debug-point D:frontend-login-success
+    fetch('http://127.0.0.1:7777/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'login-failed',
+        runId: 'pre-fix',
+        hypothesisId: 'D',
+        location: 'frontend/src/context/AuthContext.jsx:login-success',
+        msg: '[DEBUG] Login request resolved successfully',
+        data: {
+          adminId: data.data.admin?.id,
+          adminEmail: data.data.admin?.email,
+        },
+        ts: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     return data;
   };
 
