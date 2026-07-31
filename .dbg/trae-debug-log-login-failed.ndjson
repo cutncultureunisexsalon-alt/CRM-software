@@ -1,0 +1,4 @@
+﻿
+{"sessionId":"login-failed","runId":"pre-fix","hypothesisId":"E","location":"backend/src/controllers/authController.js:login","msg":"[DEBUG] Backend login endpoint hit","data":{"email":"admin@salon.com","hasPassword":true,"host":"127.0.0.1:5000"},"ts":1785329190967}
+{"sessionId":"login-failed","runId":"pre-fix","hypothesisId":"F","location":"backend/src/services/authService.js:db-result","msg":"[DEBUG] Admin lookup completed","data":{"email":"admin@salon.com","foundAdmin":true},"ts":1785329192247}
+{"sessionId":"login-failed","runId":"pre-fix","hypothesisId":"H","location":"backend/src/services/authService.js:admin-password-check","msg":"[DEBUG] Stored admin password check completed","data":{"email":"admin@salon.com","isValid":true},"ts":1785329192905}
