@@ -14,10 +14,7 @@ class WhatsAppService {
     this.qrCode = null;
     this.status = 'disconnected';
     this.phoneNumber = null;
-<<<<<<< HEAD
     this.lastError = null;
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     this.initializing = false;
     this.shouldReconnect = false;
     this.reconnectTimer = null;
@@ -29,10 +26,7 @@ class WhatsAppService {
       qrCode: this.qrCode,
       phoneNumber: this.phoneNumber,
       isConnected: this.status === 'connected',
-<<<<<<< HEAD
       error: this.lastError,
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     };
   }
 
@@ -78,10 +72,7 @@ class WhatsAppService {
 
     this.initializing = true;
     this.status = 'initializing';
-<<<<<<< HEAD
     this.lastError = null;
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
     const sessionPath = path.resolve(config.whatsappSessionPath);
     if (!fs.existsSync(sessionPath)) {
@@ -98,10 +89,6 @@ class WhatsAppService {
         '--no-first-run',
         '--no-zygote',
         '--disable-gpu',
-<<<<<<< HEAD
-=======
-        '--single-process',
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
       ],
     };
 
@@ -114,11 +101,7 @@ class WhatsAppService {
       }
     }
 
-<<<<<<< HEAD
     if (executablePath && fs.existsSync(executablePath)) {
-=======
-    if (executablePath) {
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
       puppeteerOptions.executablePath = executablePath;
     }
 
@@ -131,7 +114,6 @@ class WhatsAppService {
     });
 
     this.client.on('qr', async (qr) => {
-<<<<<<< HEAD
       try {
         this.qrCode = await qrcode.toDataURL(qr);
         this.status = 'qr_ready';
@@ -152,24 +134,13 @@ class WhatsAppService {
       } catch (err) {
         console.warn('[WhatsApp] Failed to persist QR-ready session:', err.message);
       }
-=======
-      this.qrCode = await qrcode.toDataURL(qr);
-      this.status = 'qr_ready';
-      await WhatsAppModel.updateSession({
-        is_connected: false,
-        session_data: { status: 'qr_ready' },
-      });
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     });
 
     this.client.on('authenticated', () => {
       this.status = 'authenticated';
       this.qrCode = null;
-<<<<<<< HEAD
       this.initializing = false;
       this.lastError = null;
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     });
 
     this.client.on('ready', async () => {
@@ -177,15 +148,11 @@ class WhatsAppService {
       this.qrCode = null;
       this.initializing = false;
       this.clearReconnectTimer();
-<<<<<<< HEAD
       this.lastError = null;
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
       const info = this.client.info;
       this.phoneNumber = info?.wid?.user || null;
 
-<<<<<<< HEAD
       try {
         await WhatsAppModel.updateSession({
           is_connected: true,
@@ -196,14 +163,6 @@ class WhatsAppService {
       } catch (err) {
         console.warn('[WhatsApp] Failed to persist connected session:', err.message);
       }
-=======
-      await WhatsAppModel.updateSession({
-        is_connected: true,
-        phone_number: this.phoneNumber,
-        last_connected_at: new Date().toISOString(),
-        session_data: { status: 'connected', phone: this.phoneNumber },
-      });
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
       console.log('[WhatsApp] Client ready:', this.phoneNumber);
     });
@@ -215,7 +174,6 @@ class WhatsAppService {
       this.phoneNumber = null;
       this.client = null;
       this.initializing = false;
-<<<<<<< HEAD
       this.lastError = null;
 
       try {
@@ -227,14 +185,6 @@ class WhatsAppService {
       } catch (err) {
         console.warn('[WhatsApp] Failed to persist disconnected session:', err.message);
       }
-=======
-
-      await WhatsAppModel.updateSession({
-        is_connected: false,
-        phone_number: null,
-        session_data: { status: 'disconnected', reason },
-      });
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
       this.scheduleReconnect(reason);
     });
@@ -245,10 +195,7 @@ class WhatsAppService {
       this.qrCode = null;
       this.phoneNumber = null;
       this.initializing = false;
-<<<<<<< HEAD
       this.lastError = msg || null;
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
       if (this.client) {
         try {
           await this.client.destroy();
@@ -258,7 +205,6 @@ class WhatsAppService {
       }
       this.client = null;
 
-<<<<<<< HEAD
       try {
         await WhatsAppModel.updateSession({
           is_connected: false,
@@ -268,13 +214,6 @@ class WhatsAppService {
       } catch (err) {
         console.warn('[WhatsApp] Failed to persist auth-failure session:', err.message);
       }
-=======
-      await WhatsAppModel.updateSession({
-        is_connected: false,
-        phone_number: null,
-        session_data: { status: 'auth_failure', reason: msg },
-      });
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
       this.scheduleReconnect('auth_failure');
     });
@@ -285,7 +224,6 @@ class WhatsAppService {
       console.error('[WhatsApp] Init error:', err.message);
       this.status = 'error';
       this.initializing = false;
-<<<<<<< HEAD
       this.lastError = err.message;
       this.client = null;
       try {
@@ -297,14 +235,6 @@ class WhatsAppService {
       } catch (dbErr) {
         console.warn('[WhatsApp] Failed to persist init-error session:', dbErr.message);
       }
-=======
-      this.client = null;
-      await WhatsAppModel.updateSession({
-        is_connected: false,
-        phone_number: null,
-        session_data: { status: 'error', reason: err.message },
-      });
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
       this.scheduleReconnect('initialize_error');
     }
   }

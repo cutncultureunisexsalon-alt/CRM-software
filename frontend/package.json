@@ -14,12 +14,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
-<<<<<<< HEAD
-    "react-router-dom": "^7.1.1",
-    "salon-crm": "file:.."
-=======
     "react-router-dom": "^7.1.1"
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
   },
   "devDependencies": {
     "@rollup/wasm-node": "^4.62.3",

@@ -11,7 +11,6 @@ import { asyncHandler, AppError } from '../middleware/errorHandler.js';
 
 export const getWhatsAppStatus = asyncHandler(async (_req, res) => {
   const status = whatsappService.getStatus();
-<<<<<<< HEAD
   let session = null;
   let dbError = null;
 
@@ -20,19 +19,13 @@ export const getWhatsAppStatus = asyncHandler(async (_req, res) => {
   } catch (err) {
     dbError = (err && err.message) || 'Failed to fetch WhatsApp session';
   }
-=======
-  const session = await WhatsAppModel.getSession();
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
 
   res.json({
     success: true,
     data: {
       ...status,
       dbSession: session,
-<<<<<<< HEAD
       dbError,
-=======
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     },
   });
 });

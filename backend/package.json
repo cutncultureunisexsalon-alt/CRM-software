@@ -27,13 +27,8 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
     "pg": "^8.22.0",
-<<<<<<< HEAD
     "puppeteer": "^24.38.0",
     "qrcode": "^1.5.4",
-    "salon-crm": "file:..",
-=======
-    "qrcode": "^1.5.4",
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     "whatsapp-web.js": "^1.26.0",
     "xlsx": "^0.18.5"
   }

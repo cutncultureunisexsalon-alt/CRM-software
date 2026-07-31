@@ -8,7 +8,6 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-<<<<<<< HEAD
   if (import.meta.env.DEV) {
     fetch('http://127.0.0.1:7777/event', {
       method: 'POST',
@@ -29,28 +28,6 @@ api.interceptors.request.use((config) => {
       }),
     }).catch(() => {});
   }
-=======
-  // #region debug-point A:frontend-request
-  fetch('http://127.0.0.1:7777/event', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'login-failed',
-      runId: 'pre-fix',
-      hypothesisId: 'A',
-      location: 'frontend/src/services/api.js:request',
-      msg: '[DEBUG] Frontend request prepared',
-      data: {
-        method: config.method,
-        baseURL: config.baseURL,
-        url: config.url,
-        origin: window.location.origin,
-      },
-      ts: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -61,7 +38,6 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-<<<<<<< HEAD
     if (import.meta.env.DEV) {
       fetch('http://127.0.0.1:7777/event', {
         method: 'POST',
@@ -84,30 +60,6 @@ api.interceptors.response.use(
         }),
       }).catch(() => {});
     }
-=======
-    // #region debug-point B:frontend-response-error
-    fetch('http://127.0.0.1:7777/event', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: 'login-failed',
-        runId: 'pre-fix',
-        hypothesisId: 'B',
-        location: 'frontend/src/services/api.js:response-error',
-        msg: '[DEBUG] Frontend request failed',
-        data: {
-          baseURL: error.config?.baseURL,
-          url: error.config?.url,
-          method: error.config?.method,
-          status: error.response?.status,
-          message: error.response?.data?.message || error.message,
-          responseUrl: error.request?.responseURL,
-        },
-        ts: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
->>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('admin');
