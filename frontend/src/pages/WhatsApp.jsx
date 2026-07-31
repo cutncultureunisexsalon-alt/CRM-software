@@ -183,9 +183,12 @@ export default function WhatsApp() {
                 {status?.phoneNumber && (
                   <p className="text-sm text-dark-400 font-mono">+{status.phoneNumber}</p>
                 )}
+<<<<<<< HEAD
                 {status?.error && (
                   <p className="text-sm text-red-400">{status.error}</p>
                 )}
+=======
+>>>>>>> 75e7d2a66dc350efffe7473c31fa2bdf270a3f0c
               </div>
             </div>
 
